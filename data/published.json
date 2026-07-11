@@ -68,5 +68,40 @@
     "intro": "이번 주 인기 상품 기준 추천.",
     "catSlug": "kitchen",
     "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-a02205",
+    "keyword": "운동화",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-fd8c9c",
+    "keyword": "방수 스프레이",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-f00500",
+    "keyword": "레인부츠",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "clean-a16761",
+    "keyword": "쿨토시",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "clean",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "clean-f7d7a6",
+    "keyword": "우산",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "clean",
+    "firstPublished": "2026-07-11"
   }
 ]
