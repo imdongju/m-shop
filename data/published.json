@@ -103,5 +103,40 @@
     "intro": "이번 주 인기 상품 기준 추천.",
     "catSlug": "clean",
     "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-aa4904",
+    "keyword": "스프레이",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-f2dc64",
+    "keyword": "테이프",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-3fe164",
+    "keyword": "로퍼",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "clean-b21fcc",
+    "keyword": "양말",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "clean",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "clean-9c8527",
+    "keyword": "머리끈",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "clean",
+    "firstPublished": "2026-07-11"
   }
 ]
