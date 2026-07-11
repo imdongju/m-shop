@@ -18,7 +18,9 @@ module.exports = {
 
   fetch: {
     limitPerKeyword: 20, // 쿠팡 검색 API 허용 범위 (초과 시 자동으로 10으로 재시도)
-    subId: process.env.COUPANG_SUB_ID || "",
+    // 사이트 구분용 subId (파트너스 리포트에서 사이트별 실적 분리).
+    // 사이트를 여러 개 만들면 COUPANG_SUB_ID 변수로 각각 다르게 지정.
+    subId: process.env.COUPANG_SUB_ID || "github",
   },
 
   // 발행 리듬: 하루에 새 페이지 몇 개씩 누적할지
