@@ -5,7 +5,7 @@ module.exports = {
   site: {
     title: "자취 살림 추천",
     description: "자취·원룸 살림템을 카테고리별로 골라주는 큐레이션",
-    baseUrl: process.env.SITE_URL || "https://example.github.io/coupang-auto-pages",
+    baseUrl: process.env.SITE_URL || "https://imdongju.github.io/m-shop",
     lang: "ko",
   },
 
