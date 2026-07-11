@@ -2,9 +2,8 @@ name: Publish to GitHub Pages
 
 on:
   schedule:
-    # 하루 2회, 시간대를 벌려서 실행 — 회당 5콜이라 어느 1시간 창에도 최대 5콜
-    - cron: "0 12 * * *" # 21:00 KST
-    - cron: "30 13 * * *" # 22:30 KST
+    # 매시간 실행, 회당 4콜 — 크론이 지연돼 두 실행이 같은 60분 창에 겹쳐도 최대 8콜 (한도 10)
+    - cron: "0 * * * *"
   workflow_dispatch: {}
   push:
     branches: [main]
@@ -43,9 +42,9 @@ jobs:
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           SITE_URL: ${{ vars.SITE_URL }}
           TREND: ${{ vars.TREND }}
-          # 푸시 빌드는 API 호출 0회 (캐시만) — 쿠팡 시간당 한도 보호
-          # 예약/수동 실행도 회당 5콜 (통설 한도 10의 절반, 실수로 2번 겹쳐도 10 이하)
-          API_BUDGET: ${{ github.event_name == 'push' && '0' || '5' }}
+          # 푸시 빌드는 API 호출 0회 (캐시만) — 쿠팡 시간당 한도(10회) 보호
+          # 예약/수동 실행은 회당 4콜: 크론 지연으로 실행이 겹쳐도 시간당 최대 8콜
+          API_BUDGET: ${{ github.event_name == 'push' && '0' || '4' }}
         run: npm run build
 
       - name: Persist published state

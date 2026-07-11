@@ -346,16 +346,17 @@ async function main() {
     console.log(`🆕 신규 발행: ${cand.keyword}`);
   }
 
-  // D) 남은 예산으로 가장 오래된 캐시부터 가격 갱신
+  // D) 남은 예산으로 가장 오래된 캐시부터 가격 갱신 (refreshAfterDays 지난 것만)
+  const cutoff = new Date(Date.now() - config.fetch.refreshAfterDays * 86400000).toISOString().slice(0, 10);
   const stale = published
-    .filter((p) => cacheBySlug[p.slug] && cacheBySlug[p.slug].fetchedAt !== today)
+    .filter((p) => cacheBySlug[p.slug] && cacheBySlug[p.slug].fetchedAt <= cutoff)
     .sort((a, b) => String(cacheBySlug[a.slug].fetchedAt).localeCompare(String(cacheBySlug[b.slug].fetchedAt)));
   for (const p of stale) {
     if (rateLimited || budget <= 0) break;
     const products = await apiSearch(p.keyword);
     if (products) {
-      // 상품이 갱신됐으니 가이드도 다음 렌더에서 새로 생성 (guide 미포함)
-      const cache = { fetchedAt: today, products };
+      // 가이드는 유지 (GPT 재호출 방지) — 가이드 생성은 신규 페이지에서만
+      const cache = { fetchedAt: today, products, guide: cacheBySlug[p.slug].guide };
       writeProductCache(p.slug, cache);
       cacheBySlug[p.slug] = cache;
       console.log(`♻️  가격 갱신: ${p.keyword}`);

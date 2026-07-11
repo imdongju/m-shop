@@ -24,8 +24,9 @@ module.exports = {
     subId: process.env.COUPANG_SUB_ID || "githubchannel",
     // 실행 1회당 쿠팡 API 최대 호출 수 (시간당 한도 초과 = 계정 제재 경고 방지)
     // 워크플로에서 API_BUDGET 환경변수로 덮어씀 (푸시 빌드는 0 = 캐시만 사용)
-    apiBudget: 5,
+    apiBudget: 4,
     delayMs: 1500, // 호출 간격
+    refreshAfterDays: 3, // 기존 페이지 가격은 3일 지난 것만 갱신 (매시간 도니 과갱신 방지)
   },
 
   // 발행 리듬: 하루에 새 페이지 몇 개씩 누적할지
