@@ -2,7 +2,9 @@ name: Publish to GitHub Pages
 
 on:
   schedule:
-    - cron: "0 12 * * *" # 매일 21:00 KST (UTC 12:00)
+    # 하루 2회, 시간대를 벌려서 실행 — 회당 5콜이라 어느 1시간 창에도 최대 5콜
+    - cron: "0 12 * * *" # 21:00 KST
+    - cron: "30 13 * * *" # 22:30 KST
   workflow_dispatch: {}
   push:
     branches: [main]
@@ -42,7 +44,8 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
           TREND: ${{ vars.TREND }}
           # 푸시 빌드는 API 호출 0회 (캐시만) — 쿠팡 시간당 한도 보호
-          API_BUDGET: ${{ github.event_name == 'push' && '0' || '8' }}
+          # 예약/수동 실행도 회당 5콜 (통설 한도 10의 절반, 실수로 2번 겹쳐도 10 이하)
+          API_BUDGET: ${{ github.event_name == 'push' && '0' || '5' }}
         run: npm run build
 
       - name: Persist published state

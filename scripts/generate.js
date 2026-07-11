@@ -303,7 +303,8 @@ async function main() {
   }
   if (config.trend.enabled && !rateLimited && budget > 0) {
     const cats = config.categories.filter((c) => c.seed);
-    if (cats.length) {
+    // 오늘 이미 갱신했으면 스킵 (하루 2회 실행돼도 트렌드 호출은 1회만)
+    if (cats.length && trendCache[cats[Math.floor(Date.now() / 86400000) % cats.length].slug]?.fetchedAt !== today) {
       const cat = cats[Math.floor(Date.now() / 86400000) % cats.length];
       const best = await apiSearch(cat.seed);
       if (best) {
