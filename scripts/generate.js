@@ -44,6 +44,7 @@ function layout({ title, description, canonical, body, activeCat }) {
 <meta property="og:description" content="${T.esc(description)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${T.esc(config.site.title)}">
+${config.site.googleSiteVerification ? `<meta name="google-site-verification" content="${T.esc(config.site.googleSiteVerification)}">` : ""}
 <link rel="icon" href="${favicon()}">
 ${adsenseHead()}
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">

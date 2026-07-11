@@ -8,6 +8,7 @@ module.exports = {
     baseUrl: process.env.SITE_URL || "https://imdongju.github.io/m-shop",
     lang: "ko",
     logoEmoji: "🏠", // 헤더 로고 이모지
+    googleSiteVerification: "AvcLvvcwrEZuTk3OmREJqf3VgC0unWJ8wLyrRVJta60", // 서치콘솔 소유 확인
   },
 
   adsenseClient: process.env.ADSENSE_CLIENT || "",
