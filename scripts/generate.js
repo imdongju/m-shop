@@ -19,6 +19,12 @@ function adsenseHead() {
   if (!config.adsenseClient) return "";
   return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${T.esc(config.adsenseClient)}" crossorigin="anonymous"></script>`;
 }
+
+// 이모지 파비콘 (별도 이미지 파일 불필요)
+function favicon() {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${config.site.logoEmoji || "🛍️"}</text></svg>`;
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
 function categoryNav(activeCatSlug) {
   return config.categories.map((c) =>
     `<a href="./cat-${T.esc(c.slug)}.html"${c.slug === activeCatSlug ? ' class="on"' : ""}>${T.esc(c.name)}</a>`
@@ -36,6 +42,9 @@ function layout({ title, description, canonical, body, activeCat }) {
 <link rel="canonical" href="${T.esc(canonical)}">
 <meta property="og:title" content="${T.esc(title)}">
 <meta property="og:description" content="${T.esc(description)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${T.esc(config.site.title)}">
+<link rel="icon" href="${favicon()}">
 ${adsenseHead()}
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
@@ -60,8 +69,12 @@ h1{font-size:23px;margin:16px 0 4px}
 .intro{color:var(--muted);margin:0 0 8px}
 .block{margin:28px 0}
 .block h2{font-size:18px;border-left:4px solid var(--brand);padding-left:9px;margin:0 0 14px}
+.block h2 small{color:var(--muted);font-weight:400;font-size:12px;margin-left:4px}
 .block h3{font-size:15px;margin:16px 0 8px}
 .block h3 small{color:var(--muted);font-weight:400}
+.related{display:flex;flex-wrap:wrap;gap:8px}
+.related a{font-size:13px;background:var(--bg2);color:var(--text);padding:7px 13px;border-radius:999px;text-decoration:none;border:1px solid var(--border);transition:border-color .15s}
+.related a:hover{border-color:var(--brand)}
 .stats{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 .stats li{background:var(--bg2);padding:9px 13px;border-radius:10px;font-size:13px;border:1px solid var(--border)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
@@ -94,6 +107,7 @@ th{background:var(--bg2);font-weight:600}
 .catcard small{color:var(--muted)}
 .catcard .trendlink{color:var(--brand);font-size:13px;margin-top:10px;font-weight:600}
 footer{margin:40px 0 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:16px}
+footer a{color:inherit}
 </style>
 </head>
 <body>
@@ -105,25 +119,60 @@ ${body}
 <footer>
 <p>${T.esc(config.disclosure)}</p>
 <p>가격·재고는 실시간으로 바뀔 수 있습니다. 최종 확인은 쿠팡에서. 갱신일: ${today}</p>
+<p><a href="./privacy.html">개인정보처리방침</a></p>
 </footer>
 </div>
 </body>
 </html>`;
 }
 
-async function keywordPage(entry, products, cat) {
+async function keywordPage(entry, products, cat, related = []) {
   const stats = T.priceStats(products);
   const guide = await buildGuide(entry, products, stats);
   const title = `${entry.keyword} 추천 ${new Date().getFullYear()} | ${config.site.title}`;
   const canonical = `${config.site.baseUrl}/${entry.slug}.html`;
+  // 구조화 데이터 (구글이 상품 리스트로 인식)
+  const ld = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${entry.keyword} 추천`,
+    itemListElement: products.slice(0, 10).map((p, i) => ({
+      "@type": "ListItem", position: i + 1, name: p.productName, url: p.productUrl,
+    })),
+  }).replace(/</g, "\\u003c");
+  // 내부 링크 (같은 카테고리 우선)
+  const relatedHtml = related.length
+    ? `<section class="block"><h2>다른 추천도 보기</h2><div class="related">${related
+        .map((r) => `<a href="./${T.esc(r.slug)}.html">${T.esc(r.keyword)}</a>`).join("")}</div></section>`
+    : "";
   const body = `<h1>${T.esc(entry.keyword)} 추천</h1>
 <p class="intro">${T.esc(entry.intro || "")}</p>
 ${T.renderDataSummary(stats)}
 ${guide}
 ${T.renderRanking(products, 10)}
 ${T.renderPriceTiers(products)}
-${T.renderComparison(products, 5)}`;
+${T.renderComparison(products, 5)}
+${relatedHtml}
+<script type="application/ld+json">${ld}</script>`;
   return layout({ title, description: entry.intro || title, canonical, body, activeCat: cat && cat.slug });
+}
+
+// 개인정보처리방침 (애드센스 광고 쿠키 고지 포함)
+function privacyPage() {
+  const title = `개인정보처리방침 | ${config.site.title}`;
+  const canonical = `${config.site.baseUrl}/privacy.html`;
+  const body = `<h1>개인정보처리방침</h1>
+<div class="block">
+<p>본 사이트(${T.esc(config.site.title)})는 별도의 회원가입 없이 이용할 수 있으며, 이용자의 개인정보를 직접 수집·저장하지 않습니다.</p>
+<h2>쿠키 및 광고</h2>
+<p>본 사이트는 Google AdSense 광고를 게재할 수 있습니다. Google을 포함한 제3자 광고 사업자는 쿠키를 사용하여 이용자의 이전 방문 기록에 기반한 맞춤 광고를 제공할 수 있습니다. 이용자는 <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google 광고 설정</a>에서 맞춤 광고를 해제할 수 있습니다.</p>
+<h2>제휴 링크</h2>
+<p>${T.esc(config.disclosure)} 상품 링크를 통해 쿠팡으로 이동할 경우 쿠팡의 개인정보처리방침이 적용됩니다.</p>
+<h2>문의</h2>
+<p>본 방침에 대한 문의는 사이트 하단 정보를 통해 접수해 주세요.</p>
+<p class="intro">시행일: ${today}</p>
+</div>`;
+  return layout({ title, description: "개인정보처리방침 및 광고 쿠키 안내", canonical, body });
 }
 
 function categoryPage(cat, liveEntries, productsBySlug) {
@@ -144,7 +193,7 @@ function trendPage(cat, best) {
   const title = `${cat.name} 인기 TOP ${new Date().getFullYear()} | ${config.site.title}`;
   const canonical = `${config.site.baseUrl}/trend-${cat.slug}.html`;
   const body = `<h1>${T.esc(cat.name)} 이번 주 인기 TOP</h1>
-<p class="intro">쿠팡 실시간 베스트셀러 기준. 매일 갱신됩니다. (${today})</p>
+<p class="intro">쿠팡 인기 상품(검색 인기순) 기준. 매일 갱신됩니다. (${today})</p>
 ${T.renderDataSummary(stats)}
 ${T.renderRanking(best, 20)}`;
   return layout({ title, description: `${cat.name} 실시간 인기 상품`, canonical, body, activeCat: cat.slug });
@@ -169,6 +218,7 @@ ${trendLink}</div>`;
 function writeSeoFiles(liveSlugs, trendCatSlugs) {
   const urls = [
     config.site.baseUrl + "/",
+    `${config.site.baseUrl}/privacy.html`,
     ...config.categories.map((c) => `${config.site.baseUrl}/cat-${c.slug}.html`),
     ...trendCatSlugs.map((s) => `${config.site.baseUrl}/trend-${s}.html`),
     ...liveSlugs.map((s) => `${config.site.baseUrl}/${s}.html`),
@@ -234,7 +284,7 @@ async function main() {
   console.log(`📅 오늘 신규 ${fresh.length}개 / 총 발행 ${published.length}개`);
   if (fresh.length) console.log(`   신규: ${fresh.map((f) => f.keyword).join(", ")}`);
 
-  // 발행된 모든 페이지 생성 (가격 갱신)
+  // 1차: 발행된 키워드의 상품 수집 (가격 갱신)
   const productsBySlug = {};
   const liveByCat = {};
   for (const entry of published) {
@@ -246,13 +296,23 @@ async function main() {
         limit: config.fetch.limitPerKeyword, subId: config.fetch.subId,
       });
       if (!products.length) { console.warn(`⚠️  "${entry.keyword}" 0건`); continue; }
-      fs.writeFileSync(path.join(OUT, `${entry.slug}.html`), await keywordPage(entry, products, cat));
       productsBySlug[entry.slug] = products;
       (liveByCat[cat.slug] ||= []).push(entry);
       await new Promise((r) => setTimeout(r, 400));
     } catch (e) {
       console.error(`❌ ${entry.keyword}: ${e.message}`);
     }
+  }
+
+  // 2차: 페이지 렌더 (내부 링크 — 같은 카테고리 우선, 이번 배포에 존재하는 페이지만)
+  for (const entry of published) {
+    const products = productsBySlug[entry.slug];
+    if (!products) continue;
+    const cat = catBySlug[entry.catSlug];
+    const sameCat = (liveByCat[entry.catSlug] || []).filter((e) => e.slug !== entry.slug);
+    const others = published.filter((e) => productsBySlug[e.slug] && e.catSlug !== entry.catSlug);
+    const related = [...sameCat, ...others].slice(0, 6);
+    fs.writeFileSync(path.join(OUT, `${entry.slug}.html`), await keywordPage(entry, products, cat, related));
   }
 
   writePublished(published); // 상태 저장 (레포에 커밋됨)
@@ -273,6 +333,7 @@ async function main() {
   }
 
   fs.writeFileSync(path.join(OUT, "index.html"), homePage(liveByCat, config.trend.enabled));
+  fs.writeFileSync(path.join(OUT, "privacy.html"), privacyPage());
   writeSeoFiles(liveSlugs, trendCatSlugs);
   console.log(`\n완료: 상품 ${liveSlugs.length} + 카테고리 ${config.categories.length} + 트렌드 ${trendCatSlugs.length} + 홈 → ${OUT}`);
 }

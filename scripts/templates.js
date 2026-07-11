@@ -67,7 +67,7 @@ function renderRanking(products, topN = 10) {
   const items = products.slice(0, topN)
     .map((p, i) => `<div class="rankcard">${productCard(p)}<span class="rankno">${i + 1}</span></div>`)
     .join("");
-  return `<section class="block"><h2>인기 랭킹 TOP ${Math.min(topN, products.length)}</h2>
+  return `<section class="block"><h2>인기 랭킹 TOP ${Math.min(topN, products.length)} <small>쿠팡 인기순 기준</small></h2>
 <div class="grid rankgrid">${items}</div></section>`;
 }
 
