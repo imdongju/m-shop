@@ -33,5 +33,40 @@
     "intro": "베란다 없는 원룸용 건조대.",
     "catSlug": "clean",
     "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "storage-box",
+    "keyword": "수납 정리함",
+    "intro": "좁은 방 공간 활용 수납템.",
+    "catSlug": "storage",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "hanger",
+    "keyword": "옷걸이 행거",
+    "intro": "원룸용 이동식 행거.",
+    "catSlug": "storage",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-9caf00",
+    "keyword": "깔창",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-9435ad",
+    "keyword": "샌들",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-db31b2",
+    "keyword": "슬리퍼",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
   }
 ]
