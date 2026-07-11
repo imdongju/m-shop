@@ -30,11 +30,11 @@ function readProductCache(slug) {
   }
 }
 
-function writeProductCache(slug, products) {
+// data: { fetchedAt, products, guide?, keywords? } — AI 산출물도 함께 캐시해
+// 코드 수정 푸시 빌드에서 쿠팡·OpenAI 모두 0회 호출로 렌더할 수 있게 한다.
+function writeProductCache(slug, data) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
-  const fetchedAt = new Date().toISOString().slice(0, 10);
-  fs.writeFileSync(path.join(CACHE_DIR, slug + ".json"), JSON.stringify({ fetchedAt, products }) + "\n");
-  return fetchedAt;
+  fs.writeFileSync(path.join(CACHE_DIR, slug + ".json"), JSON.stringify(data) + "\n");
 }
 
 module.exports = { readPublished, writePublished, readProductCache, writeProductCache, FILE };

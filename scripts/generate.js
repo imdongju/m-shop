@@ -127,9 +127,8 @@ ${body}
 </html>`;
 }
 
-async function keywordPage(entry, products, cat, related = [], dataDate = today) {
+async function keywordPage(entry, products, cat, related = [], dataDate = today, guide = "") {
   const stats = T.priceStats(products);
-  const guide = await buildGuide(entry, products, stats);
   const title = `${entry.keyword} 추천 ${new Date().getFullYear()} | ${config.site.title}`;
   const canonical = `${config.site.baseUrl}/${entry.slug}.html`;
   // 구조화 데이터 (구글이 상품 리스트로 인식)
@@ -287,8 +286,9 @@ async function main() {
     if (cacheBySlug[p.slug] || rateLimited || budget <= 0) continue;
     const products = await apiSearch(p.keyword);
     if (products) {
-      const fetchedAt = writeProductCache(p.slug, products);
-      cacheBySlug[p.slug] = { fetchedAt, products };
+      const cache = { fetchedAt: today, products };
+      writeProductCache(p.slug, cache);
+      cacheBySlug[p.slug] = cache;
       console.log(`📥 캐시 생성: ${p.keyword}`);
     }
   }
@@ -307,20 +307,24 @@ async function main() {
       const cat = cats[Math.floor(Date.now() / 86400000) % cats.length];
       const best = await apiSearch(cat.seed);
       if (best) {
-        const fetchedAt = writeProductCache(`_trend-${cat.slug}`, best);
-        trendCache[cat.slug] = { fetchedAt, products: best };
-        console.log(`🔥 트렌드 갱신: [${cat.name}]`);
+        // 키워드 추출(AI)도 이때 1회만 하고 캐시에 저장
+        const keywords = await extractTrendKeywords(cat, best, config.trend.keywordsPerCategory);
+        const tc = { fetchedAt: today, products: best, keywords };
+        writeProductCache(`_trend-${cat.slug}`, tc);
+        trendCache[cat.slug] = tc;
+        console.log(`🔥 트렌드 갱신: [${cat.name}] → ${keywords.map((k) => k.keyword).join(", ")}`);
       }
     }
   }
   for (const cat of config.categories) {
     const tc = trendCache[cat.slug];
     if (!tc) continue;
-    try {
-      pool.push(...(await extractTrendKeywords(cat, tc.products, config.trend.keywordsPerCategory)));
-    } catch (e) {
-      console.warn(`   트렌드 키워드 추출 실패 [${cat.name}]: ${e.message}`);
+    if (!tc.keywords) {
+      // 구버전 캐시 → 1회 추출 후 저장 (이후 재추출 없음)
+      tc.keywords = await extractTrendKeywords(cat, tc.products, config.trend.keywordsPerCategory);
+      writeProductCache(`_trend-${cat.slug}`, tc);
     }
+    pool.push(...tc.keywords);
   }
 
   // C) 신규 발행 — 하루 총 perDay개 (하루에 여러 번 실행돼도 초과 발행 안 함)
@@ -332,8 +336,9 @@ async function main() {
     if (!k || pubKeys.has(k)) continue;
     const products = await apiSearch(cand.keyword);
     if (!products) continue;
-    const fetchedAt = writeProductCache(cand.slug, products);
-    cacheBySlug[cand.slug] = { fetchedAt, products };
+    const cache = { fetchedAt: today, products };
+    writeProductCache(cand.slug, cache);
+    cacheBySlug[cand.slug] = cache;
     published.push({ slug: cand.slug, keyword: cand.keyword, intro: cand.intro, catSlug: cand.catSlug, firstPublished: today });
     pubKeys.add(k);
     quota--;
@@ -348,8 +353,10 @@ async function main() {
     if (rateLimited || budget <= 0) break;
     const products = await apiSearch(p.keyword);
     if (products) {
-      const fetchedAt = writeProductCache(p.slug, products);
-      cacheBySlug[p.slug] = { fetchedAt, products };
+      // 상품이 갱신됐으니 가이드도 다음 렌더에서 새로 생성 (guide 미포함)
+      const cache = { fetchedAt: today, products };
+      writeProductCache(p.slug, cache);
+      cacheBySlug[p.slug] = cache;
       console.log(`♻️  가격 갱신: ${p.keyword}`);
     }
   }
@@ -371,10 +378,15 @@ async function main() {
     const c = cacheBySlug[entry.slug];
     const cat = catBySlug[entry.catSlug];
     if (!c || !cat) continue;
+    // 가이드는 상품 데이터가 새로 조회됐을 때만 AI 생성, 이후엔 캐시 재사용
+    if (!c.guide) {
+      c.guide = await buildGuide(entry, c.products, T.priceStats(c.products));
+      writeProductCache(entry.slug, c);
+    }
     const sameCat = (liveByCat[entry.catSlug] || []).filter((e) => e.slug !== entry.slug);
     const others = published.filter((e) => productsBySlug[e.slug] && e.catSlug !== entry.catSlug);
     const related = [...sameCat, ...others].slice(0, 6);
-    fs.writeFileSync(path.join(OUT, `${entry.slug}.html`), await keywordPage(entry, c.products, cat, related, c.fetchedAt));
+    fs.writeFileSync(path.join(OUT, `${entry.slug}.html`), await keywordPage(entry, c.products, cat, related, c.fetchedAt, c.guide));
   }
 
   writePublished(published); // 상태 저장 (레포에 커밋됨)
