@@ -52,8 +52,21 @@ npm run build
 # → public/ 폴더에 결과. index.html 브라우저로 열어 확인
 ```
 
+## 발행 리듬 (하루 N개 누적)
+`config.js`의 `publishing.perDay` (기본 5) = 하루에 추가하는 새 페이지 수.
+- 매일 전체를 다시 찍지 않고, **새 키워드 5개만 추가**하고 기존 페이지는 가격만 갱신.
+- 발행 상태는 `data/published.json`에 저장되어 매 실행마다 레포로 커밋됨(누적의 핵심).
+- 한 번에 대량 투척하지 않으므로 자연스러운 발행 리듬 = 구글 스팸 신호 회피에 유리.
+
+## 트렌드 키워드 자동 생성
+`config.js`의 `trend.enabled=true` 또는 저장소 Variables에 `TREND=1` 설정 시:
+- 매일 쿠팡 **베스트셀러(실제 구매 트렌드)**에서 키워드를 자동 추출해 발행 풀에 넣음.
+- pytrends(구글 트렌드)는 Actions에서 차단이 잦아 쓰지 않음. 쿠팡 1차 데이터가 더 안전·정확.
+- 각 카테고리에 "이번 주 인기 TOP" 페이지도 자동 생성.
+
 ## 니치 바꾸기
-`config.js`의 `categories` 배열만 교체하면 끝. slug는 영문(파일명), keyword는 실제 검색어.
+`config.js`의 `categories` 배열만 교체하면 끝. slug는 영문(파일명), keyword는 실제 검색어,
+`coupangCategoryId`는 트렌드 모드에서 베스트셀러를 뽑을 쿠팡 카테고리 번호.
 
 ## ⚠️ 정책 (지키지 않으면 계정 정지)
 - 쿠팡 고지문(`config.disclosure`)은 절대 삭제 금지 — 전 페이지 상·하단에 자동 노출됨.
