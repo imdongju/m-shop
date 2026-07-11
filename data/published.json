@@ -138,5 +138,40 @@
     "intro": "이번 주 인기 상품 기준 추천.",
     "catSlug": "clean",
     "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-3bf413",
+    "keyword": "냄비",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-6b122c",
+    "keyword": "타일시트지",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-ba4684",
+    "keyword": "매트",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-1e82ce",
+    "keyword": "얼음트레이",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-ce41af",
+    "keyword": "수세미 거치대",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
   }
 ]
