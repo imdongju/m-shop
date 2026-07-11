@@ -40,15 +40,14 @@ module.exports = {
   },
 
   // === 카테고리 → 키워드 ===
-  // coupangCategoryId: 트렌드 모드에서 베스트셀러를 뽑을 쿠팡 카테고리 번호
-  //   1007 주방 · 1008 생활용품 · 1009 홈인테리어 · 1010 가전디지털
-  //   1004 뷰티 · 1016 반려동물 · 1011 스포츠레저 · 1017 헬스건강식품
+  // seed: 트렌드 모드에서 이 검색어로 인기 상품을 찾아 키워드를 자동 추출한다.
+  //   (넓은 대표 검색어일수록 다양한 키워드가 나옴. 항상 그 주제 상품만 나와 안전)
   // keywords: 트렌드 모드 꺼져 있을 때 쓰는 수동 키워드
   categories: [
     {
       slug: "kitchen",
       name: "주방·조리",
-      coupangCategoryId: 1007,
+      seed: "주방용품",
       keywords: [
         { slug: "airfryer", keyword: "에어프라이어", intro: "1~2인 자취 필수 가전." },
         { slug: "induction", keyword: "1구 인덕션", intro: "좁은 주방용 1구 인덕션." },
@@ -58,7 +57,7 @@ module.exports = {
     {
       slug: "clean",
       name: "청소·세탁",
-      coupangCategoryId: 1008,
+      seed: "청소용품",
       keywords: [
         { slug: "vacuum", keyword: "무선 청소기", intro: "자취방 청소용 가성비 무선 청소기." },
         { slug: "laundry-rack", keyword: "빨래 건조대", intro: "베란다 없는 원룸용 건조대." },
@@ -67,7 +66,7 @@ module.exports = {
     {
       slug: "storage",
       name: "수납·정리",
-      coupangCategoryId: 1009,
+      seed: "수납정리함",
       keywords: [
         { slug: "storage-box", keyword: "수납 정리함", intro: "좁은 방 공간 활용 수납템." },
         { slug: "hanger", keyword: "옷걸이 행거", intro: "원룸용 이동식 행거." },

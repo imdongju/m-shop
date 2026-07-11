@@ -1,6 +1,6 @@
 // 쿠팡 베스트셀러(실제 구매 트렌드) → 검색 키워드 자동 생성
 // AI 키 있으면 상품명에서 핵심 키워드 추출, 없으면 빈도 기반 폴백.
-const { bestCategories } = require("./coupang");
+const { searchProducts } = require("./coupang");
 const { normKey, slugFor } = require("./util");
 const { aiEnabled, chat } = require("./ai");
 
@@ -33,7 +33,7 @@ function frequencyKeywords(products, count) {
 
 async function aiKeywords(categoryName, products, count) {
   const names = products.slice(0, 25).map((p) => "- " + p.productName).join("\n");
-  const prompt = `아래는 쿠팡 "${categoryName}" 카테고리 베스트셀러 상품명이다.
+  const prompt = `아래는 쿠팡 "${categoryName}" 인기 상품명이다.
 실제 검색에 쓸 수 있는 핵심 상품 키워드 ${count}개를 뽑아라.
 규칙: 브랜드명·수식어("대용량","정품" 등)·용량숫자 제외, 일반 상품 유형명으로. 중복 금지.
 출력: JSON 문자열 배열만. 예: ["에어프라이어","전기포트"]
@@ -48,8 +48,9 @@ ${names}`;
 }
 
 // 카테고리 하나에 대해 트렌드 키워드 목록 생성 → [{slug, keyword, intro}]
+// cat.seed(대표 검색어)로 인기 상품을 찾아 키워드를 추출 → 항상 그 주제 상품만 나옴
 async function trendKeywords(cat, { accessKey, secretKey, subId = "", count = 6 }) {
-  const best = await bestCategories(cat.coupangCategoryId, { accessKey, secretKey, limit: 40, subId });
+  const best = await searchProducts(cat.seed, { accessKey, secretKey, limit: 20, subId });
   if (!best.length) return { keywords: [], best: [] };
 
   let words;

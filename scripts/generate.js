@@ -192,7 +192,7 @@ async function buildPool() {
   if (config.trend.enabled) {
     console.log("🔥 트렌드 모드: 쿠팡 베스트셀러에서 키워드 자동 생성");
     for (const cat of config.categories) {
-      if (!cat.coupangCategoryId) continue;
+      if (!cat.seed) continue;
       try {
         const { keywords, best } = await trendKeywords(cat, {
           accessKey: ACCESS_KEY, secretKey: SECRET_KEY,
