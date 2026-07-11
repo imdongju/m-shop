@@ -38,7 +38,7 @@ git push -u origin main
 | `ADSENSE_CLIENT` | | `ca-pub-xxxx` (선택, 있으면 광고 삽입) |
 | `OPENAI_API_KEY` | | 있으면 AI 구매가이드·키워드 추출, 없으면 데이터 기반 폴백 |
 
-Variables 탭에 등록: `SITE_URL`(사이트 주소), `TREND`(=1 트렌드 모드), `OPENAI_MODEL`(기본 `gpt-4o-mini`).
+Variables 탭에 등록: `SITE_URL`(사이트 주소), `TREND`(=1 트렌드 모드), `OPENAI_MODEL`(기본 `gpt-4o`).
 
 ### 3. Pages 켜기
 레포 → Settings → Pages → Source: **GitHub Actions** 선택.
