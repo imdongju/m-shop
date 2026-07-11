@@ -37,53 +37,68 @@ function layout({ title, description, canonical, body, activeCat }) {
 <meta property="og:title" content="${T.esc(title)}">
 <meta property="og:description" content="${T.esc(description)}">
 ${adsenseHead()}
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
-:root{color-scheme:light dark}
+:root{color-scheme:light dark;--brand:#2563eb;--brand-d:#1d4ed8;--bg:#ffffff;--bg2:#f6f7f9;--text:#1a1c20;--muted:#6b7280;--border:#ececf0;--card:#ffffff;--shadow:0 1px 2px rgba(20,20,40,.05),0 6px 20px rgba(20,20,40,.06);--shadow-h:0 6px 16px rgba(20,20,40,.10),0 16px 40px rgba(20,20,40,.14)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--bg2:#161922;--text:#e8eaf0;--muted:#9aa1ad;--border:#262b34;--card:#161922;--shadow:0 1px 2px rgba(0,0,0,.3);--shadow-h:0 10px 30px rgba(0,0,0,.55)}}
 *{box-sizing:border-box}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;margin:0;color:#1a1a1a;background:#fff}
-.wrap{max-width:920px;margin:0 auto;padding:16px}
-header a.logo{font-weight:700;text-decoration:none;font-size:19px}
+body{font-family:'Pretendard Variable',Pretendard,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;margin:0;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:0 16px 16px}
+.topbar{position:sticky;top:0;z-index:20;background:var(--bg);background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);margin:0 -16px 12px;padding:13px 16px}
+.logo{font-weight:800;text-decoration:none;font-size:19px;color:var(--text);display:inline-flex;align-items:center;gap:7px}
+.logo .em{font-size:20px}
 nav{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-nav a{font-size:13px;background:#f2f2f2;padding:6px 12px;border-radius:999px;text-decoration:none}
-nav a.on{background:#1a56db;color:#fff}
-.disclosure{background:#fff8e1;border:1px solid #f0e0a0;color:#6b5900;font-size:13px;padding:10px 12px;border-radius:8px;margin:12px 0}
+nav a{font-size:13px;background:var(--bg2);color:var(--text);padding:7px 13px;border-radius:999px;text-decoration:none;border:1px solid var(--border);transition:border-color .15s}
+nav a:hover{border-color:var(--brand)}
+nav a.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.hero{background:linear-gradient(135deg,var(--brand),#7c3aed);color:#fff;border-radius:18px;padding:34px 26px;margin:6px 0 22px;box-shadow:var(--shadow)}
+.hero h1{font-size:26px;margin:0 0 8px;color:#fff}
+.hero p{margin:0;opacity:.92;font-size:15px}
+.disclosure{background:#fff8e1;border:1px solid #f0e0a0;color:#6b5900;font-size:13px;padding:10px 12px;border-radius:10px;margin:12px 0}
+@media (prefers-color-scheme:dark){.disclosure{background:#2a2410;border-color:#4a411c;color:#e6d69a}}
 h1{font-size:23px;margin:16px 0 4px}
-.intro{color:#555;margin:0 0 8px}
-.block{margin:26px 0}
-.block h2{font-size:18px;border-left:4px solid #1a56db;padding-left:8px;margin:0 0 12px}
+.intro{color:var(--muted);margin:0 0 8px}
+.block{margin:28px 0}
+.block h2{font-size:18px;border-left:4px solid var(--brand);padding-left:9px;margin:0 0 14px}
 .block h3{font-size:15px;margin:16px 0 8px}
-.block h3 small{color:#888;font-weight:400}
+.block h3 small{color:var(--muted);font-weight:400}
 .stats{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.stats li{background:#f5f7ff;padding:8px 12px;border-radius:8px;font-size:13px}
+.stats li{background:var(--bg2);padding:9px 13px;border-radius:10px;font-size:13px;border:1px solid var(--border)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
 .rankgrid .rankcard{position:relative}
-.rankno{position:absolute;top:6px;left:6px;background:#1a56db;color:#fff;font-size:12px;font-weight:700;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.card{border:1px solid #eee;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
-.card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#fafafa}
-.card .b{padding:10px;display:flex;flex-direction:column;gap:6px;flex:1}
-.name{font-size:13px;line-height:1.4;height:3.6em;overflow:hidden}
-.price{font-weight:700;font-size:15px}
+.rankno{position:absolute;top:8px;left:8px;z-index:2;background:var(--brand);color:#fff;font-size:12px;font-weight:700;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.card{border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:var(--card);box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-h)}
+.card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--bg2)}
+.card .b{padding:11px;display:flex;flex-direction:column;gap:6px;flex:1}
+.name{font-size:13px;line-height:1.45;height:3.8em;overflow:hidden}
+.price{font-weight:800;font-size:15px}
 .badges{display:flex;gap:4px;flex-wrap:wrap}
-.badge{font-size:11px;padding:2px 6px;border-radius:6px;background:#eef}
+.badge{font-size:11px;padding:2px 7px;border-radius:6px;background:var(--bg2);color:var(--muted)}
 .rocket{background:#e8f0ff;color:#1a56db}
-.btn{margin-top:auto;text-align:center;background:#1a56db;color:#fff;text-decoration:none;padding:8px;border-radius:8px;font-size:13px}
-.tablewrap{overflow-x:auto}
+@media (prefers-color-scheme:dark){.rocket{background:#16305e;color:#9cc2ff}}
+.btn{margin-top:auto;text-align:center;background:var(--brand);color:#fff;text-decoration:none;padding:9px;border-radius:9px;font-size:13px;font-weight:600;transition:background .15s}
+.btn:hover{background:var(--brand-d)}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
-.tname a{color:#1a56db;text-decoration:none}
-.tbtn{background:#1a56db;color:#fff;padding:4px 10px;border-radius:6px;text-decoration:none;font-size:12px}
-.guide .note{color:#999;font-size:12px}
-.catlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.catcard{border:1px solid #eee;border-radius:12px;padding:16px}
-.catcard a{text-decoration:none;display:block}
-.catcard .trendlink{color:#1a56db;font-size:13px;margin-top:8px}
-footer{margin:36px 0;color:#888;font-size:12px}
-@media (prefers-color-scheme:dark){body{background:#111;color:#eee}.card,.catcard{background:#1a1a1a;border-color:#333}nav a{background:#222}.stats li{background:#1c2030}th,td{border-color:#333}}
+th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+tr:last-child td{border-bottom:none}
+th{background:var(--bg2);font-weight:600}
+.tname a{color:var(--brand);text-decoration:none;font-weight:500}
+.tbtn{background:var(--brand);color:#fff;padding:5px 11px;border-radius:7px;text-decoration:none;font-size:12px}
+.guide .note{color:var(--muted);font-size:12px}
+.catlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.catcard{border:1px solid var(--border);border-radius:14px;padding:18px;background:var(--card);box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
+.catcard:hover{transform:translateY(-3px);box-shadow:var(--shadow-h)}
+.catcard a{text-decoration:none;display:block;color:var(--text)}
+.catcard small{color:var(--muted)}
+.catcard .trendlink{color:var(--brand);font-size:13px;margin-top:10px;font-weight:600}
+footer{margin:40px 0 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:16px}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header><a class="logo" href="./">${T.esc(config.site.title)}</a></header>
+<header class="topbar"><a class="logo" href="./"><span class="em">${T.esc(config.site.logoEmoji || "🛍️")}</span>${T.esc(config.site.title)}</a></header>
 <nav><a href="./"${!activeCat ? ' class="on"' : ""}>홈</a>${categoryNav(activeCat)}</nav>
 <div class="disclosure">${T.esc(config.disclosure)}</div>
 ${body}
@@ -146,8 +161,7 @@ function homePage(liveByCat, hasTrend) {
 <a href="./cat-${T.esc(c.slug)}.html"><b>${T.esc(c.name)}</b><br><small>${kw}</small></a>
 ${trendLink}</div>`;
   }).join("");
-  const body = `<h1>${T.esc(config.site.title)}</h1>
-<p class="intro">${T.esc(config.site.description)}</p>
+  const body = `<div class="hero"><h1>${T.esc(config.site.title)}</h1><p>${T.esc(config.site.description)}</p></div>
 <div class="catlist">${cards}</div>`;
   return layout({ title, description: config.site.description, canonical, body });
 }

@@ -7,6 +7,7 @@ module.exports = {
     description: "자취·원룸 살림템을 카테고리별로 골라주는 큐레이션",
     baseUrl: process.env.SITE_URL || "https://imdongju.github.io/m-shop",
     lang: "ko",
+    logoEmoji: "🏠", // 헤더 로고 이모지
   },
 
   adsenseClient: process.env.ADSENSE_CLIENT || "",
