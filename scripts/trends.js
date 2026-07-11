@@ -2,9 +2,7 @@
 // AI 키 있으면 상품명에서 핵심 키워드 추출, 없으면 빈도 기반 폴백.
 const { bestCategories } = require("./coupang");
 const { normKey, slugFor } = require("./util");
-
-const AI_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = "claude-haiku-4-5-20251001";
+const { aiEnabled, chat } = require("./ai");
 
 // 불용어/단위 — 키워드에서 걸러낼 토큰
 const STOP = new Set([
@@ -42,14 +40,7 @@ async function aiKeywords(categoryName, products, count) {
 
 상품명:
 ${names}`;
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": AI_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODEL, max_tokens: 400, messages: [{ role: "user", content: prompt }] }),
-  });
-  if (!res.ok) throw new Error(`AI ${res.status}: ${await res.text()}`);
-  const json = await res.json();
-  const text = (json.content || []).map((c) => c.text || "").join("");
+  const text = await chat(prompt, { maxTokens: 400, temperature: 0.3 });
   const match = text.match(/\[[\s\S]*\]/);
   if (!match) throw new Error("AI 응답에서 JSON 배열 못 찾음");
   const arr = JSON.parse(match[0]);
@@ -62,7 +53,7 @@ async function trendKeywords(cat, { accessKey, secretKey, subId = "", count = 6 
   if (!best.length) return { keywords: [], best: [] };
 
   let words;
-  if (AI_KEY) {
+  if (aiEnabled()) {
     try {
       words = await aiKeywords(cat.name, best, count);
     } catch (e) {

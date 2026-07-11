@@ -1,10 +1,7 @@
 // 구매 가이드 생성.
-// ANTHROPIC_API_KEY 가 있으면 실제 상품 데이터를 근거로 AI가 작성,
-// 없으면 데이터 기반 문구로 폴백. (없는 정보는 지어내지 않는다)
+// OPENAI_API_KEY 있으면 실제 상품 데이터를 근거로 AI가 작성, 없으면 데이터 기반 폴백.
 const { esc, won, groupByPriceTier } = require("./templates");
-
-const KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = "claude-haiku-4-5-20251001";
+const { aiEnabled, chat } = require("./ai");
 
 // 데이터 기반 폴백 — 실제 가격대만 사용, 리뷰/스펙 조작 없음
 function fallbackGuide(entry, products, stats) {
@@ -30,30 +27,12 @@ async function aiGuide(entry, products, stats) {
 ${list}
 
 통계: 최저 ${won(stats.min)}, 최고 ${won(stats.max)}, 중간값 ${won(stats.median)}, 로켓 ${stats.rocket}/${stats.count}`;
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": KEY,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 700,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (!res.ok) throw new Error(`AI ${res.status}: ${await res.text()}`);
-  const json = await res.json();
-  const text = (json.content || []).map((c) => c.text || "").join("").trim();
-  if (!text) throw new Error("AI 빈 응답");
-  return text;
+  return chat(prompt, { maxTokens: 700 });
 }
 
 async function buildGuide(entry, products, stats) {
   let inner;
-  if (KEY) {
+  if (aiEnabled()) {
     try {
       inner = await aiGuide(entry, products, stats);
     } catch (e) {

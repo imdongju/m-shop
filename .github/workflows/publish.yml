@@ -37,7 +37,8 @@ jobs:
           COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
           COUPANG_SUB_ID: ${{ secrets.COUPANG_SUB_ID }}
           ADSENSE_CLIENT: ${{ secrets.ADSENSE_CLIENT }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           SITE_URL: ${{ vars.SITE_URL }}
           TREND: ${{ vars.TREND }}
         run: npm run build

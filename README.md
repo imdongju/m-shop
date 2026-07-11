@@ -36,9 +36,9 @@ git push -u origin main
 | `COUPANG_SECRET_KEY` | ✅ | 쿠팡 파트너스 시크릿 키 |
 | `COUPANG_SUB_ID` | | 유입 추적용 채널 ID (선택) |
 | `ADSENSE_CLIENT` | | `ca-pub-xxxx` (선택, 있으면 광고 삽입) |
-| `ANTHROPIC_API_KEY` | | 있으면 AI 구매가이드, 없으면 데이터 기반 문구 |
+| `OPENAI_API_KEY` | | 있으면 AI 구매가이드·키워드 추출, 없으면 데이터 기반 폴백 |
 
-`SITE_URL` 은 Variables 탭에 등록 (예: 커스텀 도메인 `https://mysite.com`).
+Variables 탭에 등록: `SITE_URL`(사이트 주소), `TREND`(=1 트렌드 모드), `OPENAI_MODEL`(기본 `gpt-4o-mini`).
 
 ### 3. Pages 켜기
 레포 → Settings → Pages → Source: **GitHub Actions** 선택.
