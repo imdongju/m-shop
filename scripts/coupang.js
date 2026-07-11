@@ -17,33 +17,38 @@ function signedAuthorization(method, urlWithQuery, accessKey, secretKey) {
   return `CEA algorithm=HmacSHA256, access-key=${accessKey}, signed-date=${datetime}, signature=${signature}`;
 }
 
-// 상품 검색 — 반환된 productUrl 은 이미 파트너스 추적이 붙은 제휴 링크다.
-async function searchProducts(keyword, { accessKey, secretKey, limit = 20, subId = "" }) {
-  const basePath =
-    "/v2/providers/affiliate_open_api/apis/openapi/v1/products/search";
+// 검색 1회 시도
+async function searchOnce(keyword, limit, { accessKey, secretKey, subId }) {
+  const basePath = "/v2/providers/affiliate_open_api/apis/openapi/v1/products/search";
   const params = new URLSearchParams({ keyword, limit: String(limit) });
   if (subId) params.set("subId", subId);
-  const query = params.toString();
-  const urlWithQuery = `${basePath}?${query}`;
-
+  const urlWithQuery = `${basePath}?${params.toString()}`;
   const authorization = signedAuthorization("GET", urlWithQuery, accessKey, secretKey);
   const res = await fetch(DOMAIN + urlWithQuery, {
     method: "GET",
     headers: { Authorization: authorization, "Content-Type": "application/json" },
   });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`쿠팡 검색 실패 (${res.status}) "${keyword}": ${body}`);
-  }
+  if (!res.ok) throw new Error(`쿠팡 검색 실패 (${res.status}) "${keyword}": ${await res.text()}`);
   const json = await res.json();
-  // 응답 구조가 엔드포인트마다 다를 수 있어 양쪽 다 처리
   const d = json?.data;
   const products = Array.isArray(d) ? d : (d?.productData || []);
-  if (!products.length) {
-    console.warn(`   (검색 "${keyword}" 응답: rCode=${json?.rCode} rMessage=${json?.rMessage} dataKeys=${d && !Array.isArray(d) ? Object.keys(d).join(",") : (Array.isArray(d) ? "array" : "none")})`);
+  return { products, rCode: json?.rCode, rMessage: json?.rMessage };
+}
+
+// 상품 검색 — limit 범위 초과 시 더 작은 값으로 자동 재시도.
+// 반환된 productUrl 은 이미 파트너스 추적이 붙은 제휴 링크다.
+async function searchProducts(keyword, { accessKey, secretKey, limit = 20, subId = "" }) {
+  const tries = [...new Set([limit, 20, 10])].filter((n) => n > 0);
+  let last;
+  for (const lim of tries) {
+    const r = await searchOnce(keyword, lim, { accessKey, secretKey, subId });
+    if (r.products.length) return r.products;
+    last = r;
+    // limit 범위 문제면 더 작은 값으로 재시도, 그 외는 중단
+    if (!/limit/i.test(r.rMessage || "")) break;
   }
-  return products;
+  console.warn(`   (검색 "${keyword}" 0건: rCode=${last?.rCode} rMessage=${last?.rMessage})`);
+  return [];
 }
 
 // 카테고리별 베스트셀러 (실시간 인기 = 트렌드). productUrl 은 제휴 링크.

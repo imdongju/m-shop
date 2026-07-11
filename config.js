@@ -16,7 +16,7 @@ module.exports = {
     "이 사이트는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
 
   fetch: {
-    limitPerKeyword: 30,
+    limitPerKeyword: 20, // 쿠팡 검색 API 허용 범위 (초과 시 자동으로 10으로 재시도)
     subId: process.env.COUPANG_SUB_ID || "",
   },
 
