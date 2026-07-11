@@ -37,7 +37,13 @@ async function searchProducts(keyword, { accessKey, secretKey, limit = 20, subId
     throw new Error(`쿠팡 검색 실패 (${res.status}) "${keyword}": ${body}`);
   }
   const json = await res.json();
-  return json?.data?.productData || [];
+  // 응답 구조가 엔드포인트마다 다를 수 있어 양쪽 다 처리
+  const d = json?.data;
+  const products = Array.isArray(d) ? d : (d?.productData || []);
+  if (!products.length) {
+    console.warn(`   (검색 "${keyword}" 응답: rCode=${json?.rCode} rMessage=${json?.rMessage} dataKeys=${d && !Array.isArray(d) ? Object.keys(d).join(",") : (Array.isArray(d) ? "array" : "none")})`);
+  }
+  return products;
 }
 
 // 카테고리별 베스트셀러 (실시간 인기 = 트렌드). productUrl 은 제휴 링크.
