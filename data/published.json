@@ -173,5 +173,40 @@
     "intro": "이번 주 인기 상품 기준 추천.",
     "catSlug": "kitchen",
     "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-4f497a",
+    "keyword": "프라이팬",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-ef0e46",
+    "keyword": "식기건조매트",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-e35579",
+    "keyword": "스텐도마",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "kitchen-c92c9f",
+    "keyword": "반찬통",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "clean-25db82",
+    "keyword": "청소솔",
+    "intro": "이번 주 인기 상품 기준 추천.",
+    "catSlug": "clean",
+    "firstPublished": "2026-07-11"
   }
 ]
