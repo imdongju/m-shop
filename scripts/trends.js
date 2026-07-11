@@ -1,6 +1,5 @@
 // 쿠팡 베스트셀러(실제 구매 트렌드) → 검색 키워드 자동 생성
 // AI 키 있으면 상품명에서 핵심 키워드 추출, 없으면 빈도 기반 폴백.
-const { searchProducts } = require("./coupang");
 const { normKey, slugFor } = require("./util");
 const { aiEnabled, chat } = require("./ai");
 
@@ -47,11 +46,10 @@ ${names}`;
   return arr.filter((s) => typeof s === "string" && s.trim()).map((s) => s.trim()).slice(0, count);
 }
 
-// 카테고리 하나에 대해 트렌드 키워드 목록 생성 → [{slug, keyword, intro}]
-// cat.seed(대표 검색어)로 인기 상품을 찾아 키워드를 추출 → 항상 그 주제 상품만 나옴
-async function trendKeywords(cat, { accessKey, secretKey, subId = "", count = 6 }) {
-  const best = await searchProducts(cat.seed, { accessKey, secretKey, limit: 20, subId });
-  if (!best.length) return { keywords: [], best: [] };
+// 인기 상품 목록에서 트렌드 키워드 추출 → [{slug, keyword, intro, catSlug}]
+// (API 호출은 하지 않는다 — 호출 예산은 generate.js가 관리)
+async function extractTrendKeywords(cat, best, count = 6) {
+  if (!best || !best.length) return [];
 
   let words;
   if (aiEnabled()) {
@@ -74,7 +72,7 @@ async function trendKeywords(cat, { accessKey, secretKey, subId = "", count = 6 
     seen.add(key);
     keywords.push({ slug: slugFor(cat.slug, w), keyword: w, intro: "이번 주 인기 상품 기준 추천.", catSlug: cat.slug });
   }
-  return { keywords, best };
+  return keywords;
 }
 
-module.exports = { trendKeywords, frequencyKeywords };
+module.exports = { extractTrendKeywords, frequencyKeywords };

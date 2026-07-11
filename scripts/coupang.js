@@ -42,6 +42,12 @@ async function searchProducts(keyword, { accessKey, secretKey, limit = 20, subId
   let last;
   for (const lim of tries) {
     const r = await searchOnce(keyword, lim, { accessKey, secretKey, subId });
+    // 사용량 초과(계정 제재 경고) → 즉시 전체 중단하도록 표식을 붙여 던짐
+    if (String(r.rCode) === "403" || /사용 횟수|초과했습니다/.test(r.rMessage || "")) {
+      const err = new Error(`쿠팡 API 사용량 초과: ${r.rMessage}`);
+      err.rateLimited = true;
+      throw err;
+    }
     if (r.products.length) return r.products;
     last = r;
     // limit 범위 문제면 더 작은 값으로 재시도, 그 외는 중단

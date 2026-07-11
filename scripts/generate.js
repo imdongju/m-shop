@@ -3,8 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const config = require("../config");
 const { searchProducts } = require("./coupang");
-const { trendKeywords } = require("./trends");
-const { readPublished, writePublished } = require("./state");
+const { extractTrendKeywords } = require("./trends");
+const { readPublished, writePublished, readProductCache, writeProductCache } = require("./state");
 const { normKey } = require("./util");
 const T = require("./templates");
 const { buildGuide } = require("./enrich");
@@ -127,7 +127,7 @@ ${body}
 </html>`;
 }
 
-async function keywordPage(entry, products, cat, related = []) {
+async function keywordPage(entry, products, cat, related = [], dataDate = today) {
   const stats = T.priceStats(products);
   const guide = await buildGuide(entry, products, stats);
   const title = `${entry.keyword} 추천 ${new Date().getFullYear()} | ${config.site.title}`;
@@ -149,6 +149,7 @@ async function keywordPage(entry, products, cat, related = []) {
   const body = `<h1>${T.esc(entry.keyword)} 추천</h1>
 <p class="intro">${T.esc(entry.intro || "")}</p>
 ${T.renderDataSummary(stats)}
+<p class="intro" style="font-size:12px">가격 조회 기준일: ${dataDate} · 최신 가격은 쿠팡에서 확인하세요.</p>
 ${guide}
 ${T.renderRanking(products, 10)}
 ${T.renderPriceTiers(products)}
@@ -189,12 +190,12 @@ function categoryPage(cat, liveEntries, productsBySlug) {
   return layout({ title, description: `${cat.name} 추천 모음`, canonical, body, activeCat: cat.slug });
 }
 
-function trendPage(cat, best) {
+function trendPage(cat, best, dataDate = today) {
   const stats = T.priceStats(best);
   const title = `${cat.name} 인기 TOP ${new Date().getFullYear()} | ${config.site.title}`;
   const canonical = `${config.site.baseUrl}/trend-${cat.slug}.html`;
   const body = `<h1>${T.esc(cat.name)} 이번 주 인기 TOP</h1>
-<p class="intro">쿠팡 인기 상품(검색 인기순) 기준. 매일 갱신됩니다. (${today})</p>
+<p class="intro">쿠팡 인기 상품(검색 인기순) 기준 · 조회 기준일 ${dataDate}</p>
 ${T.renderDataSummary(stats)}
 ${T.renderRanking(best, 20)}`;
   return layout({ title, description: `${cat.name} 실시간 인기 상품`, canonical, body, activeCat: cat.slug });
@@ -232,42 +233,13 @@ ${urls.map((u) => `<url><loc>${T.esc(u)}</loc><lastmod>${today}</lastmod></url>`
   fs.writeFileSync(path.join(OUT, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${config.site.baseUrl}/sitemap.xml\n`);
 }
 
-// 후보 키워드 풀 구성: 고정(config) 먼저 + 트렌드(선택) 뒤에, 중복 제거
-async function buildPool() {
-  const candidates = [];
+// 고정 키워드 풀 (config) — 트렌드 키워드는 main()에서 예산 내로 추가
+function fixedPool() {
+  const pool = [];
   for (const c of config.categories)
     for (const k of c.keywords)
-      candidates.push({ slug: k.slug, keyword: k.keyword, intro: k.intro, catSlug: c.slug });
-
-  const bestByCat = {};
-  if (config.trend.enabled) {
-    console.log("🔥 트렌드 모드: 쿠팡 베스트셀러에서 키워드 자동 생성");
-    for (const cat of config.categories) {
-      if (!cat.seed) continue;
-      try {
-        const { keywords, best } = await trendKeywords(cat, {
-          accessKey: ACCESS_KEY, secretKey: SECRET_KEY,
-          subId: config.fetch.subId, count: config.trend.keywordsPerCategory,
-        });
-        bestByCat[cat.slug] = best;
-        candidates.push(...keywords);
-        console.log(`   [${cat.name}] → ${keywords.map((k) => k.keyword).join(", ") || "(0건)"}`);
-        await new Promise((r) => setTimeout(r, 400));
-      } catch (e) {
-        console.error(`   [${cat.name}] 트렌드 실패: ${e.message}`);
-      }
-    }
-  }
-
-  const seen = new Set();
-  const pool = [];
-  for (const c of candidates) {
-    const k = normKey(c.keyword);
-    if (!k || seen.has(k)) continue;
-    seen.add(k);
-    pool.push(c);
-  }
-  return { pool, bestByCat };
+      pool.push({ slug: k.slug, keyword: k.keyword, intro: k.intro, catSlug: c.slug });
+  return pool;
 }
 
 async function main() {
@@ -275,45 +247,134 @@ async function main() {
   fs.rmSync(OUT, { recursive: true, force: true });
   fs.mkdirSync(OUT, { recursive: true });
 
-  const { pool, bestByCat } = await buildPool();
-
-  // 하루 perDay개씩 새 키워드만 발행 목록에 추가
-  const published = readPublished();
-  const pubKeys = new Set(published.map((p) => normKey(p.keyword)));
-  const fresh = pool.filter((c) => !pubKeys.has(normKey(c.keyword))).slice(0, config.publishing.perDay);
-  for (const f of fresh) published.push({ ...f, firstPublished: today });
-  console.log(`📅 오늘 신규 ${fresh.length}개 / 총 발행 ${published.length}개`);
-  if (fresh.length) console.log(`   신규: ${fresh.map((f) => f.keyword).join(", ")}`);
-
-  // 1차: 발행된 키워드의 상품 수집 (가격 갱신)
-  const productsBySlug = {};
-  const liveByCat = {};
-  for (const entry of published) {
-    const cat = catBySlug[entry.catSlug];
-    if (!cat) continue;
+  // === API 호출 예산 (시간당 한도 초과 → 계정 제재 방지) ===
+  // 푸시 빌드는 API_BUDGET=0 (캐시만 사용), 예약/수동 실행만 소량 호출
+  let budget = Number(process.env.API_BUDGET ?? config.fetch.apiBudget);
+  let rateLimited = false;
+  const apiSearch = async (keyword) => {
+    if (rateLimited || budget <= 0) return null;
+    budget--;
     try {
-      const products = await searchProducts(entry.keyword, {
+      const products = await searchProducts(keyword, {
         accessKey: ACCESS_KEY, secretKey: SECRET_KEY,
         limit: config.fetch.limitPerKeyword, subId: config.fetch.subId,
       });
-      if (!products.length) { console.warn(`⚠️  "${entry.keyword}" 0건`); continue; }
-      productsBySlug[entry.slug] = products;
-      (liveByCat[cat.slug] ||= []).push(entry);
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, config.fetch.delayMs));
+      return products.length ? products : null;
     } catch (e) {
-      console.error(`❌ ${entry.keyword}: ${e.message}`);
+      if (e.rateLimited) {
+        rateLimited = true;
+        console.warn(`🚫 쿠팡 API 한도 도달 — 남은 호출 전부 중단, 캐시로 렌더합니다.`);
+        return null;
+      }
+      console.error(`❌ "${keyword}": ${e.message}`);
+      return null;
+    }
+  };
+  console.log(`🔋 이번 실행 API 예산: ${budget}회`);
+
+  const published = readPublished();
+
+  // 캐시 로드 (data/products/*.json — 레포에 커밋됨)
+  const cacheBySlug = {};
+  for (const p of published) {
+    const c = readProductCache(p.slug);
+    if (c) cacheBySlug[p.slug] = c;
+  }
+
+  // A) 캐시가 없는 기존 발행분부터 채운다 (최우선)
+  for (const p of published) {
+    if (cacheBySlug[p.slug] || rateLimited || budget <= 0) continue;
+    const products = await apiSearch(p.keyword);
+    if (products) {
+      const fetchedAt = writeProductCache(p.slug, products);
+      cacheBySlug[p.slug] = { fetchedAt, products };
+      console.log(`📥 캐시 생성: ${p.keyword}`);
     }
   }
 
-  // 2차: 페이지 렌더 (내부 링크 — 같은 카테고리 우선, 이번 배포에 존재하는 페이지만)
-  for (const entry of published) {
-    const products = productsBySlug[entry.slug];
+  // B) 트렌드 발굴 — 하루 1개 카테고리 로테이션 (호출 1회), 나머지는 캐시
+  const pool = fixedPool();
+  const trendCache = {};
+  for (const cat of config.categories) {
+    if (!cat.seed) continue;
+    const c = readProductCache(`_trend-${cat.slug}`);
+    if (c) trendCache[cat.slug] = c;
+  }
+  if (config.trend.enabled && !rateLimited && budget > 0) {
+    const cats = config.categories.filter((c) => c.seed);
+    if (cats.length) {
+      const cat = cats[Math.floor(Date.now() / 86400000) % cats.length];
+      const best = await apiSearch(cat.seed);
+      if (best) {
+        const fetchedAt = writeProductCache(`_trend-${cat.slug}`, best);
+        trendCache[cat.slug] = { fetchedAt, products: best };
+        console.log(`🔥 트렌드 갱신: [${cat.name}]`);
+      }
+    }
+  }
+  for (const cat of config.categories) {
+    const tc = trendCache[cat.slug];
+    if (!tc) continue;
+    try {
+      pool.push(...(await extractTrendKeywords(cat, tc.products, config.trend.keywordsPerCategory)));
+    } catch (e) {
+      console.warn(`   트렌드 키워드 추출 실패 [${cat.name}]: ${e.message}`);
+    }
+  }
+
+  // C) 신규 발행 — 하루 총 perDay개 (하루에 여러 번 실행돼도 초과 발행 안 함)
+  const pubKeys = new Set(published.map((p) => normKey(p.keyword)));
+  let quota = Math.max(0, config.publishing.perDay - published.filter((p) => p.firstPublished === today).length);
+  for (const cand of pool) {
+    if (quota <= 0 || rateLimited || budget <= 0) break;
+    const k = normKey(cand.keyword);
+    if (!k || pubKeys.has(k)) continue;
+    const products = await apiSearch(cand.keyword);
     if (!products) continue;
+    const fetchedAt = writeProductCache(cand.slug, products);
+    cacheBySlug[cand.slug] = { fetchedAt, products };
+    published.push({ slug: cand.slug, keyword: cand.keyword, intro: cand.intro, catSlug: cand.catSlug, firstPublished: today });
+    pubKeys.add(k);
+    quota--;
+    console.log(`🆕 신규 발행: ${cand.keyword}`);
+  }
+
+  // D) 남은 예산으로 가장 오래된 캐시부터 가격 갱신
+  const stale = published
+    .filter((p) => cacheBySlug[p.slug] && cacheBySlug[p.slug].fetchedAt !== today)
+    .sort((a, b) => String(cacheBySlug[a.slug].fetchedAt).localeCompare(String(cacheBySlug[b.slug].fetchedAt)));
+  for (const p of stale) {
+    if (rateLimited || budget <= 0) break;
+    const products = await apiSearch(p.keyword);
+    if (products) {
+      const fetchedAt = writeProductCache(p.slug, products);
+      cacheBySlug[p.slug] = { fetchedAt, products };
+      console.log(`♻️  가격 갱신: ${p.keyword}`);
+    }
+  }
+
+  console.log(`📅 총 발행 ${published.length}개 / 캐시 ${Object.keys(cacheBySlug).length}개 / 남은 예산 ${budget}회`);
+
+  // 렌더 — 전부 캐시 기반 (API가 막혀도 사이트는 그대로 유지)
+  const productsBySlug = {};
+  const liveByCat = {};
+  for (const entry of published) {
+    const c = cacheBySlug[entry.slug];
     const cat = catBySlug[entry.catSlug];
+    if (!c || !cat) continue;
+    productsBySlug[entry.slug] = c.products;
+    (liveByCat[cat.slug] ||= []).push(entry);
+  }
+
+  for (const entry of published) {
+    const c = cacheBySlug[entry.slug];
+    const cat = catBySlug[entry.catSlug];
+    if (!c || !cat) continue;
     const sameCat = (liveByCat[entry.catSlug] || []).filter((e) => e.slug !== entry.slug);
     const others = published.filter((e) => productsBySlug[e.slug] && e.catSlug !== entry.catSlug);
     const related = [...sameCat, ...others].slice(0, 6);
-    fs.writeFileSync(path.join(OUT, `${entry.slug}.html`), await keywordPage(entry, products, cat, related));
+    fs.writeFileSync(path.join(OUT, `${entry.slug}.html`), await keywordPage(entry, c.products, cat, related, c.fetchedAt));
   }
 
   writePublished(published); // 상태 저장 (레포에 커밋됨)
@@ -326,9 +387,9 @@ async function main() {
 
   const trendCatSlugs = [];
   for (const cat of config.categories) {
-    const best = bestByCat[cat.slug];
-    if (best && best.length) {
-      fs.writeFileSync(path.join(OUT, `trend-${cat.slug}.html`), trendPage(cat, best));
+    const tc = trendCache[cat.slug];
+    if (tc && tc.products.length) {
+      fs.writeFileSync(path.join(OUT, `trend-${cat.slug}.html`), trendPage(cat, tc.products, tc.fetchedAt));
       trendCatSlugs.push(cat.slug);
     }
   }

@@ -22,6 +22,10 @@ module.exports = {
     // 사이트 구분용 subId (파트너스 리포트에서 사이트별 실적 분리).
     // 사이트를 여러 개 만들면 COUPANG_SUB_ID 변수로 각각 다르게 지정.
     subId: process.env.COUPANG_SUB_ID || "githubchannel",
+    // 실행 1회당 쿠팡 API 최대 호출 수 (시간당 한도 초과 = 계정 제재 경고 방지)
+    // 워크플로에서 API_BUDGET 환경변수로 덮어씀 (푸시 빌드는 0 = 캐시만 사용)
+    apiBudget: 8,
+    delayMs: 1500, // 호출 간격
   },
 
   // 발행 리듬: 하루에 새 페이지 몇 개씩 누적할지

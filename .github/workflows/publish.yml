@@ -2,7 +2,7 @@ name: Publish to GitHub Pages
 
 on:
   schedule:
-    - cron: "0 21 * * *" # 매일 06:00 KST (UTC 21:00)
+    - cron: "0 12 * * *" # 매일 21:00 KST (UTC 12:00)
   workflow_dispatch: {}
   push:
     branches: [main]
@@ -41,13 +41,15 @@ jobs:
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           SITE_URL: ${{ vars.SITE_URL }}
           TREND: ${{ vars.TREND }}
+          # 푸시 빌드는 API 호출 0회 (캐시만) — 쿠팡 시간당 한도 보호
+          API_BUDGET: ${{ github.event_name == 'push' && '0' || '8' }}
         run: npm run build
 
       - name: Persist published state
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/published.json
+          git add data/
           if git diff --staged --quiet; then
             echo "상태 변화 없음"
           else
