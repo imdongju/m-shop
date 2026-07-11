@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "slug": "airfryer",
+    "keyword": "에어프라이어",
+    "intro": "1~2인 자취 필수 가전.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "induction",
+    "keyword": "1구 인덕션",
+    "intro": "좁은 주방용 1구 인덕션.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "rice-cooker",
+    "keyword": "미니 밥솥",
+    "intro": "원룸에 맞는 소형 밥솥.",
+    "catSlug": "kitchen",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "vacuum",
+    "keyword": "무선 청소기",
+    "intro": "자취방 청소용 가성비 무선 청소기.",
+    "catSlug": "clean",
+    "firstPublished": "2026-07-11"
+  },
+  {
+    "slug": "laundry-rack",
+    "keyword": "빨래 건조대",
+    "intro": "베란다 없는 원룸용 건조대.",
+    "catSlug": "clean",
+    "firstPublished": "2026-07-11"
+  }
+]
