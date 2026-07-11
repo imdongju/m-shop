@@ -2,8 +2,9 @@ name: Publish to GitHub Pages
 
 on:
   schedule:
-    # 매시간 실행, 회당 4콜 — 크론이 지연돼 두 실행이 같은 60분 창에 겹쳐도 최대 8콜 (한도 10)
-    - cron: "0 * * * *"
+    # 2시간마다 × 3콜 — 같은 키를 쓰는 VPS 블로그(affiliate_new, 시간당 ~3콜)와 합산해도
+    # 어느 1시간 창에서든 최대 3+3=6콜 (한도 10, 여유 4)
+    - cron: "0 */2 * * *"
   workflow_dispatch: {}
   push:
     branches: [main]
@@ -42,9 +43,9 @@ jobs:
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           SITE_URL: ${{ vars.SITE_URL }}
           TREND: ${{ vars.TREND }}
-          # 푸시 빌드는 API 호출 0회 (캐시만) — 쿠팡 시간당 한도(10회) 보호
-          # 예약/수동 실행은 회당 4콜: 크론 지연으로 실행이 겹쳐도 시간당 최대 8콜
-          API_BUDGET: ${{ github.event_name == 'push' && '0' || '4' }}
+          # 푸시 빌드는 API 호출 0회 (캐시만) — 쿠팡 시간당 한도(10회)는 VPS 블로그와 공유
+          # 예약/수동 실행은 회당 3콜: VPS(~3콜/h)와 합산해도 시간당 최대 6콜
+          API_BUDGET: ${{ github.event_name == 'push' && '0' || '3' }}
         run: npm run build
 
       - name: Persist published state
