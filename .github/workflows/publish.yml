@@ -1,0 +1,62 @@
+name: Publish to GitHub Pages
+
+on:
+  schedule:
+    - cron: "0 21 * * *" # 매일 06:00 KST (UTC 21:00)
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/**" # 상태 커밋으로 인한 재실행 방지
+
+permissions:
+  contents: write # data/published.json 커밋용
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build static site
+        env:
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+          COUPANG_SUB_ID: ${{ secrets.COUPANG_SUB_ID }}
+          ADSENSE_CLIENT: ${{ secrets.ADSENSE_CLIENT }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          TREND: ${{ vars.TREND }}
+        run: npm run build
+
+      - name: Persist published state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/published.json
+          if git diff --staged --quiet; then
+            echo "상태 변화 없음"
+          else
+            git commit -m "chore: update published state [skip ci]"
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deploy
+        uses: actions/deploy-pages@v4

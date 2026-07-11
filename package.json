@@ -1,0 +1,13 @@
+{
+  "name": "coupang-auto-pages",
+  "version": "1.0.0",
+  "private": true,
+  "description": "쿠팡 파트너스 상품을 GitHub Pages로 자동 발행하는 정적 사이트 생성기",
+  "type": "commonjs",
+  "scripts": {
+    "build": "node scripts/generate.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
