@@ -5,7 +5,8 @@ const config = require("../config");
 const { searchProducts } = require("./coupang");
 const { extractTrendKeywords } = require("./trends");
 const { readPublished, writePublished, readProductCache, writeProductCache } = require("./state");
-const { normKey } = require("./util");
+const { normKey, cacheKeyFor } = require("./util");
+const { tryAcquire } = require("./limiter");
 const T = require("./templates");
 const { buildGuide } = require("./enrich");
 
@@ -252,6 +253,11 @@ async function main() {
   let rateLimited = false;
   const apiSearch = async (keyword) => {
     if (rateLimited || budget <= 0) return null;
+    // 시간당 공유 카운터(파이썬과 공유) 예약 — 거부되면 budget 차감 없이 즉시 중단(안전 기본값).
+    if (!(await tryAcquire())) {
+      console.warn(`⏳ 시간당 공유 한도 — "${keyword}" 호출 보류(캐시 사용).`);
+      return null;
+    }
     budget--;
     try {
       const products = await searchProducts(keyword, {
@@ -275,9 +281,10 @@ async function main() {
   const published = readPublished();
 
   // 캐시 로드 (data/products/*.json — 레포에 커밋됨)
+  // 인메모리 맵은 slug 기준(사이트 렌더용), 파일 I/O만 cacheKey(공유 프로토콜) 사용.
   const cacheBySlug = {};
   for (const p of published) {
-    const c = readProductCache(p.slug);
+    const c = readProductCache(cacheKeyFor(p.keyword));
     if (c) cacheBySlug[p.slug] = c;
   }
 
@@ -286,8 +293,8 @@ async function main() {
     if (cacheBySlug[p.slug] || rateLimited || budget <= 0) continue;
     const products = await apiSearch(p.keyword);
     if (products) {
-      const cache = { fetchedAt: today, products };
-      writeProductCache(p.slug, cache);
+      const cache = { keyword: p.keyword, fetchedAt: today, products };
+      writeProductCache(cacheKeyFor(p.keyword), cache);
       cacheBySlug[p.slug] = cache;
       console.log(`📥 캐시 생성: ${p.keyword}`);
     }
@@ -298,7 +305,7 @@ async function main() {
   const trendCache = {};
   for (const cat of config.categories) {
     if (!cat.seed) continue;
-    const c = readProductCache(`_trend-${cat.slug}`);
+    const c = readProductCache(`trend-${cat.slug}`);
     if (c) trendCache[cat.slug] = c;
   }
   if (config.trend.enabled && !rateLimited && budget > 0) {
@@ -311,7 +318,7 @@ async function main() {
         // 키워드 추출(AI)도 이때 1회만 하고 캐시에 저장
         const keywords = await extractTrendKeywords(cat, best, config.trend.keywordsPerCategory);
         const tc = { fetchedAt: today, products: best, keywords };
-        writeProductCache(`_trend-${cat.slug}`, tc);
+        writeProductCache(`trend-${cat.slug}`, tc);
         trendCache[cat.slug] = tc;
         console.log(`🔥 트렌드 갱신: [${cat.name}] → ${keywords.map((k) => k.keyword).join(", ")}`);
       }
@@ -323,9 +330,27 @@ async function main() {
     if (!tc.keywords) {
       // 구버전 캐시 → 1회 추출 후 저장 (이후 재추출 없음)
       tc.keywords = await extractTrendKeywords(cat, tc.products, config.trend.keywordsPerCategory);
-      writeProductCache(`_trend-${cat.slug}`, tc);
+      writeProductCache(`trend-${cat.slug}`, tc);
     }
     pool.push(...tc.keywords);
+  }
+
+  // C0) 노후 상한 — 너무 오래된 캐시(staleCeilingDays 초과)는 신규보다 먼저 갱신
+  //     (예산이 신규에 다 쓰여 특정 상품 가격이 무한정 노후되는 것을 방지)
+  const ceilingDays = config.fetch.staleCeilingDays || 14;
+  const ceilingCut = new Date(Date.now() - ceilingDays * 86400000).toISOString().slice(0, 10);
+  const critical = published
+    .filter((p) => cacheBySlug[p.slug] && cacheBySlug[p.slug].fetchedAt <= ceilingCut)
+    .sort((a, b) => String(cacheBySlug[a.slug].fetchedAt).localeCompare(String(cacheBySlug[b.slug].fetchedAt)));
+  for (const p of critical) {
+    if (rateLimited || budget <= 0) break;
+    const products = await apiSearch(p.keyword);
+    if (products) {
+      const cache = { keyword: p.keyword, fetchedAt: today, products, guide: cacheBySlug[p.slug].guide };
+      writeProductCache(cacheKeyFor(p.keyword), cache);
+      cacheBySlug[p.slug] = cache;
+      console.log(`⏫ 노후 우선 갱신(>${ceilingDays}일): ${p.keyword}`);
+    }
   }
 
   // C) 신규 발행 — 하루 총 perDay개 (하루에 여러 번 실행돼도 초과 발행 안 함)
@@ -337,8 +362,8 @@ async function main() {
     if (!k || pubKeys.has(k)) continue;
     const products = await apiSearch(cand.keyword);
     if (!products) continue;
-    const cache = { fetchedAt: today, products };
-    writeProductCache(cand.slug, cache);
+    const cache = { keyword: cand.keyword, fetchedAt: today, products };
+    writeProductCache(cacheKeyFor(cand.keyword), cache);
     cacheBySlug[cand.slug] = cache;
     published.push({ slug: cand.slug, keyword: cand.keyword, intro: cand.intro, catSlug: cand.catSlug, firstPublished: today });
     pubKeys.add(k);
@@ -355,9 +380,10 @@ async function main() {
     if (rateLimited || budget <= 0) break;
     const products = await apiSearch(p.keyword);
     if (products) {
-      // 가이드는 유지 (GPT 재호출 방지) — 가이드 생성은 신규 페이지에서만
-      const cache = { fetchedAt: today, products, guide: cacheBySlug[p.slug].guide };
-      writeProductCache(p.slug, cache);
+      // 가이드는 유지 (GPT 재호출 방지) — 가이드 생성은 신규 페이지에서만.
+      // state.writeProductCache가 기존 파일의 guide도 merge 보존하지만, 인메모리 값도 명시 유지.
+      const cache = { keyword: p.keyword, fetchedAt: today, products, guide: cacheBySlug[p.slug].guide };
+      writeProductCache(cacheKeyFor(p.keyword), cache);
       cacheBySlug[p.slug] = cache;
       console.log(`♻️  가격 갱신: ${p.keyword}`);
     }
@@ -383,7 +409,8 @@ async function main() {
     // 가이드는 상품 데이터가 새로 조회됐을 때만 AI 생성, 이후엔 캐시 재사용
     if (!c.guide) {
       c.guide = await buildGuide(entry, c.products, T.priceStats(c.products));
-      writeProductCache(entry.slug, c);
+      if (!c.keyword) c.keyword = entry.keyword;
+      writeProductCache(cacheKeyFor(entry.keyword), c);
     }
     const sameCat = (liveByCat[entry.catSlug] || []).filter((e) => e.slug !== entry.slug);
     const others = published.filter((e) => productsBySlug[e.slug] && e.catSlug !== entry.catSlug);
