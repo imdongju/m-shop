@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>개인정보처리방침 | 자취 살림 추천</title>
+<meta name="description" content="개인정보처리방침 및 광고 쿠키 안내">
+<link rel="canonical" href="https://imdongju.github.io/m-shop/privacy.html">
+<meta property="og:title" content="개인정보처리방침 | 자취 살림 추천">
+<meta property="og:description" content="개인정보처리방침 및 광고 쿠키 안내">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="자취 살림 추천">
+<meta name="google-site-verification" content="AvcLvvcwrEZuTk3OmREJqf3VgC0unWJ8wLyrRVJta60">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20100%20100'%3E%3Ctext%20y%3D'.9em'%20font-size%3D'90'%3E%F0%9F%8F%A0%3C%2Ftext%3E%3C%2Fsvg%3E">
+
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{color-scheme:light dark;--brand:#2563eb;--brand-d:#1d4ed8;--bg:#ffffff;--bg2:#f6f7f9;--text:#1a1c20;--muted:#6b7280;--border:#ececf0;--card:#ffffff;--shadow:0 1px 2px rgba(20,20,40,.05),0 6px 20px rgba(20,20,40,.06);--shadow-h:0 6px 16px rgba(20,20,40,.10),0 16px 40px rgba(20,20,40,.14)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--bg2:#161922;--text:#e8eaf0;--muted:#9aa1ad;--border:#262b34;--card:#161922;--shadow:0 1px 2px rgba(0,0,0,.3);--shadow-h:0 10px 30px rgba(0,0,0,.55)}}
+*{box-sizing:border-box}
+body{font-family:'Pretendard Variable',Pretendard,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;margin:0;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:0 16px 16px}
+.topbar{position:sticky;top:0;z-index:20;background:var(--bg);background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);margin:0 -16px 12px;padding:13px 16px}
+.logo{font-weight:800;text-decoration:none;font-size:19px;color:var(--text);display:inline-flex;align-items:center;gap:7px}
+.logo .em{font-size:20px}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+nav a{font-size:13px;background:var(--bg2);color:var(--text);padding:7px 13px;border-radius:999px;text-decoration:none;border:1px solid var(--border);transition:border-color .15s}
+nav a:hover{border-color:var(--brand)}
+nav a.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.hero{background:linear-gradient(135deg,var(--brand),#7c3aed);color:#fff;border-radius:18px;padding:34px 26px;margin:6px 0 22px;box-shadow:var(--shadow)}
+.hero h1{font-size:26px;margin:0 0 8px;color:#fff}
+.hero p{margin:0;opacity:.92;font-size:15px}
+.disclosure{background:#fff8e1;border:1px solid #f0e0a0;color:#6b5900;font-size:13px;padding:10px 12px;border-radius:10px;margin:12px 0}
+@media (prefers-color-scheme:dark){.disclosure{background:#2a2410;border-color:#4a411c;color:#e6d69a}}
+h1{font-size:23px;margin:16px 0 4px}
+.intro{color:var(--muted);margin:0 0 8px}
+.block{margin:28px 0}
+.block h2{font-size:18px;border-left:4px solid var(--brand);padding-left:9px;margin:0 0 14px}
+.block h2 small{color:var(--muted);font-weight:400;font-size:12px;margin-left:4px}
+.block h3{font-size:15px;margin:16px 0 8px}
+.block h3 small{color:var(--muted);font-weight:400}
+.related{display:flex;flex-wrap:wrap;gap:8px}
+.related a{font-size:13px;background:var(--bg2);color:var(--text);padding:7px 13px;border-radius:999px;text-decoration:none;border:1px solid var(--border);transition:border-color .15s}
+.related a:hover{border-color:var(--brand)}
+.stats{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.stats li{background:var(--bg2);padding:9px 13px;border-radius:10px;font-size:13px;border:1px solid var(--border)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.rankgrid .rankcard{position:relative}
+.rankno{position:absolute;top:8px;left:8px;z-index:2;background:var(--brand);color:#fff;font-size:12px;font-weight:700;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.card{border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:var(--card);box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-h)}
+.card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--bg2)}
+.card .b{padding:11px;display:flex;flex-direction:column;gap:6px;flex:1}
+.name{font-size:13px;line-height:1.45;height:3.8em;overflow:hidden}
+.price{font-weight:800;font-size:15px}
+.badges{display:flex;gap:4px;flex-wrap:wrap}
+.badge{font-size:11px;padding:2px 7px;border-radius:6px;background:var(--bg2);color:var(--muted)}
+.rocket{background:#e8f0ff;color:#1a56db}
+@media (prefers-color-scheme:dark){.rocket{background:#16305e;color:#9cc2ff}}
+.btn{margin-top:auto;text-align:center;background:var(--brand);color:#fff;text-decoration:none;padding:9px;border-radius:9px;font-size:13px;font-weight:600;transition:background .15s}
+.btn:hover{background:var(--brand-d)}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+tr:last-child td{border-bottom:none}
+th{background:var(--bg2);font-weight:600}
+.tname a{color:var(--brand);text-decoration:none;font-weight:500}
+.tbtn{background:var(--brand);color:#fff;padding:5px 11px;border-radius:7px;text-decoration:none;font-size:12px}
+.guide .note{color:var(--muted);font-size:12px}
+.catlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.catcard{border:1px solid var(--border);border-radius:14px;padding:18px;background:var(--card);box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
+.catcard:hover{transform:translateY(-3px);box-shadow:var(--shadow-h)}
+.catcard a{text-decoration:none;display:block;color:var(--text)}
+.catcard small{color:var(--muted)}
+.catcard .trendlink{color:var(--brand);font-size:13px;margin-top:10px;font-weight:600}
+footer{margin:40px 0 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:16px}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="topbar"><a class="logo" href="./"><span class="em">🏠</span>자취 살림 추천</a></header>
+<nav><a href="./" class="on">홈</a><a href="./cat-kitchen.html">주방·조리</a><a href="./cat-clean.html">청소·세탁</a><a href="./cat-storage.html">수납·정리</a></nav>
+<div class="disclosure">이 사이트는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</div>
+<h1>개인정보처리방침</h1>
+<div class="block">
+<p>본 사이트(자취 살림 추천)는 별도의 회원가입 없이 이용할 수 있으며, 이용자의 개인정보를 직접 수집·저장하지 않습니다.</p>
+<h2>쿠키 및 광고</h2>
+<p>본 사이트는 Google AdSense 광고를 게재할 수 있습니다. Google을 포함한 제3자 광고 사업자는 쿠키를 사용하여 이용자의 이전 방문 기록에 기반한 맞춤 광고를 제공할 수 있습니다. 이용자는 <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google 광고 설정</a>에서 맞춤 광고를 해제할 수 있습니다.</p>
+<h2>제휴 링크</h2>
+<p>이 사이트는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다. 상품 링크를 통해 쿠팡으로 이동할 경우 쿠팡의 개인정보처리방침이 적용됩니다.</p>
+<h2>문의</h2>
+<p>본 방침에 대한 문의는 사이트 하단 정보를 통해 접수해 주세요.</p>
+<p class="intro">시행일: 2026-07-12</p>
+</div>
+<footer>
+<p>이 사이트는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
+<p>가격·재고는 실시간으로 바뀔 수 있습니다. 최종 확인은 쿠팡에서. 갱신일: 2026-07-12</p>
+<p><a href="./privacy.html">개인정보처리방침</a></p>
+</footer>
+</div>
+</body>
+</html>
